@@ -110,7 +110,6 @@ if __name__ == "__main__":
     processed_df.columns = processed_df.columns.astype(str)
     X = processed_df.drop(columns=["is_high_risk", "CustomerId", "cluster"], errors="ignore")
     y = processed_df["is_high_risk"]
-    print(x.head())
     X = X.apply(pd.to_numeric, errors="coerce").fillna(0)
 
     os.makedirs("data/processed", exist_ok=True)

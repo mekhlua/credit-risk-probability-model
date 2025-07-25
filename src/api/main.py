@@ -7,25 +7,27 @@ import pandas as pd
 import os
 
 app = FastAPI()
+model = None
+preprocessor = None
 
-# ---- Load model & preprocessor from MLflow ----
-MODEL_URI = "models:/best_model/Production"
+@app.on_event("startup")
+def load_artifacts():
+    global model, preprocessor
+    mlflow.set_tracking_uri("http://127.0.0.1:5000")
 
-# Load trained model
-model = mlflow.sklearn.load_model(MODEL_URI)
+    MODEL_URI = "models:/best_model/Production"
+    model = mlflow.sklearn.load_model(MODEL_URI)
 
-# Load preprocessor (we logged it as an artifact)
-preprocessor_path = os.path.join("checkpoints", "preprocessor.pkl")
-if not os.path.exists(preprocessor_path):
-    # Download from MLflow artifacts if needed
-    import requests
-    raise FileNotFoundError("Preprocessor file missing. Did you run train.py first?")
-preprocessor = joblib.load(preprocessor_path)
+    preprocessor_path = os.path.join("checkpoints", "preprocessor.pkl")
+    if not os.path.exists(preprocessor_path):
+        raise FileNotFoundError("Preprocessor file missing. Did you run train.py first?")
+    
+    preprocessor = joblib.load(preprocessor_path)
 
 # ---- Define API schema ----
 class CustomerFeatures(BaseModel):
     Amount: float
-    Value: float
+    Value: float 
     ProductCategory: str
     ChannelId: str
     CountryCode: str
@@ -39,12 +41,7 @@ class PredictionResponse(BaseModel):
 
 @app.post("/predict", response_model=PredictionResponse)
 def predict(features: CustomerFeatures):
-    # Convert input to dataframe
     data = pd.DataFrame([features.dict()])
-
-    # Preprocess using same pipeline
     processed_data = preprocessor.transform(data)
-
-    # Predict probability
     prob = model.predict_proba(processed_data)[0][1]
     return PredictionResponse(risk_probability=round(prob, 4))
