@@ -8,3 +8,22 @@ Since our dataset lacks a direct "default" label, we must create a proxy variabl
 
 ### 3. Model Trade-offs in Regulated Contexts
 Simple models (e.g., Logistic Regression with WoE) offer interpretability and regulatory acceptance but may sacrifice predictive power. Complex models (e.g., Gradient Boosting) can improve accuracy but are harder to interpret and justify. In regulated environments, the trade-off is between transparency and performance, with a preference for models that balance both.
+
+Run tests:
+pytest -v --tb=short tests/
+
+🧪 CI/CD Pipeline
+This repo uses GitHub Actions for:
+   flake8 linting on src/
+  pytest for test execution
+ Workflow defined in .github/workflows/ci.yml
+
+ 📈 Future Improvements
+ 
+   Add SHAP-based model explainability
+
+   Integrate MLflow experiment tracking
+
+   Deploy scoring service using FastAPI
+
+If you'd like help customizing it with badges, author credits, or visual diagrams next, I’m totally up for it. Want to level it up a notch? 😎
