@@ -1,0 +1,13 @@
+pandas
+scikit-learn
+matplotlib
+seaborn
+mlflow
+pytest
+fastapi
+uvicorn
+pydantic
+flake8
+black
+xverse
+woe
