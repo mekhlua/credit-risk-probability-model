@@ -30,7 +30,7 @@ class DateFeatures(BaseEstimator, TransformerMixin):
         return X
 
 def build_pipeline():
-    num_features = ['Amount', 'Value']
+    num_features = ['Amount', 'Value']  # purely numerical
     cat_features = ['ProductCategory', 'ChannelId', 'CountryCode']
 
     num_pipeline = Pipeline([
@@ -52,7 +52,8 @@ def build_pipeline():
     return pipeline
 
 def compute_rfm(df, snapshot_date):
-    df['TransactionStartTime'] = pd.to_datetime(df['TransactionStartTime'])
+    df['TransactionStartTime'] = pd.to_datetime(df['TransactionStartTime']).dt.tz_localize(None)
+    snapshot_date = pd.to_datetime(snapshot_date).tz_localize(None)
     rfm = df.groupby('CustomerId').agg({
         'TransactionStartTime': lambda x: (snapshot_date - x.max()).days,
         'TransactionId': 'count',
@@ -67,7 +68,11 @@ def assign_high_risk(rfm):
     kmeans = KMeans(n_clusters=3, random_state=42)
     clusters = kmeans.fit_predict(rfm_scaled)
     rfm['cluster'] = clusters
-    # Identify high-risk cluster (lowest freq & monetary)
-    high_risk = rfm.groupby('cluster')[['Frequency', 'Monetary']].mean().idxmin()
-    rfm['is_high_risk'] = (rfm['cluster'] == high_risk).astype(int)
-    return rfm[['is_high_risk']]
+    
+    # Compute average frequency+monetary per cluster
+    cluster_stats = rfm.groupby('cluster')[['Frequency', 'Monetary']].mean()
+    cluster_stats['score'] = cluster_stats['Frequency'] + cluster_stats['Monetary']
+    high_risk_cluster = cluster_stats['score'].idxmin()  # lowest combined score
+    
+    rfm['is_high_risk'] = (rfm['cluster'] == high_risk_cluster).astype(int)
+    return rfm[['is_high_risk', 'cluster']]  # Keep cluster for analysis
