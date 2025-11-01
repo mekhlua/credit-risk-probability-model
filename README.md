@@ -26,4 +26,4 @@ This repo uses GitHub Actions for:
 
    Deploy scoring service using FastAPI
 
-If you'd like help customizing it with badges, author credits, or visual diagrams next, I’m totally up for it. Want to level it up a notch? 😎
+
